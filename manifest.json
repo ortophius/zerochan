@@ -3,8 +3,25 @@
     "version": "0.1",
     "description": "Extension for batch image downloading by tags",
     "manifest_version": 2,
+    "permissions": [
+        "tabs",
+        "activeTab",
+        "cookies",
+        "https://*.zerochan.net/*",
+        "downloads"
+    ],
     "browser_action": {
         "default_title": "Zerochan Grabber",
         "default_popup": "index.html"
+    },
+    "content_scripts": [
+        {
+          "matches": ["https://www.zerochan.net/*"],
+          "js": ["domworker.js"]
+        }
+      ],
+    "background": {
+      "scripts": ["downloader.js"],
+      "persistent": true
     }
 }

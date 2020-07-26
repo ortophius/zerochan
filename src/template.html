@@ -1,0 +1,36 @@
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="reset.css">
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <div class="title">Zerochan image downloader</div>
+        <div id="wrapper">
+            <div id="loader" class="invisible">
+                Загрука...
+            </div>
+            <div id="page-search">
+                    <div class="desc">Быстрый поиск</div>
+                    <input type="text" name="search", id="search" />
+            <div id="results"></div>
+            </div>
+            <div id="page-browse" class="invisible">
+                <a href="#" id="to-search">&#11013;</a>
+                <div>
+                    <img id="thumb" />
+                </div>
+                <div id="preferences">
+                    <div id="info">
+                        <h2 id="tag-name"></h2>
+                        <span><span id="images-count"></span> изображений в категории</span>
+                    </div>
+                    <div id="settings"></div>
+                    <button id="start">Загрузить</button>
+                </div>
+            </div>
+        </div>
+
+        <script language="javascript" src="index.js"></script>
+    </body>
+</html>

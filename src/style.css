@@ -1,0 +1,139 @@
+@font-face {
+    font-family: 'Trebuchet';
+    src: url('./fonts/trebuchet-ms.ttf');
+}
+
+html {
+    height: fit-content;
+}
+
+body {
+    font-family: 'Trebuchet';
+    color: #171717;
+    height: fit-content;
+}
+
+#wrapper {
+    width: 500px;
+    display: flex;
+    flex-direction: column;
+    background-color: #ebebeb;
+    padding: 1em 2em 1em 2em;
+}
+
+.title {
+    background-color: #8BC34A;
+    color: #FFFFFF;
+    text-align: center;
+    padding: 0.5em;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.desc {
+    text-align: center;
+    padding-bottom: 0.5em;
+}
+
+#search {
+    display: block;
+    border: 1px solid #c7c7c7;
+    width: 70%;
+    margin: 0 auto;
+    font-size: 20px;
+    text-align: center;
+    padding: 0.2em;
+    font-weight: 300;
+}
+
+.tag {
+    background-color: #4786d4;
+    padding: 0.5em 1em;
+    color: #ffffff;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 0.3s;
+    font-size: 14px;
+}
+
+.tag:hover {
+    background-color: #8BC34A;
+}
+
+.tag sup {
+    vertical-align: super;
+    font-size: smaller;
+}
+
+.meta {
+    background-color: #4aa2c3;
+}
+
+#results {
+    text-align: center;
+    white-space: break-spaces;
+    line-height: 1.8em;
+    padding: 1em 0.5em;
+}
+
+#page-browse {
+    display: flex;
+    align-items: stretch;
+}
+
+#thumb {
+    border: 1px solid green;
+    min-height: 50;
+    min-width: 50;
+}
+
+#preferences {
+    padding: 1em 2em 0 1em;
+}
+
+#to-search {
+    display: flex;
+    align-items: center;
+    padding: 0em 1em;
+    background-color: #c5c5c5;
+    color: #636363;
+    transition: 
+        background-color 0.3s,
+        color 0.3s;
+    text-decoration: none;
+}
+
+#to-search:hover {
+    background-color: #a0a0a0;
+    color: #FFFFFF;
+}
+
+.invisible {
+    display: none !important;
+}
+
+#info {
+    font-size: 12px;
+    color: #6f6f6f;
+    margin-bottom: 2em;
+}
+
+#tag-name {
+    font-size: 20px;
+    color: #363636;
+    margin-bottom: 0.2em;
+}
+
+#start {
+    padding: 0.5em;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: #8bc34a;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#start:active {
+    outline: none;
+}
