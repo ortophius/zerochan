@@ -1,9 +1,6 @@
 const results = require('./Results');
 
 const Search = {
-    onDisplay: function(){
-        this.input.focus();
-    },
     listen: function(input){
         if (typeof input !== 'object') return;
         

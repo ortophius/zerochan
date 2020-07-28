@@ -8,6 +8,9 @@ class Browser {
         this.tagElem = document.getElementById('tag-name')
         this.countElem = document.getElementById('images-count')
         this.backButton = document.getElementById('to-search');
+        this.startButton = document.getElementById('start');
+
+        this.startButton.onclick = this.start.bind(this);
 
         this.backButton.onclick = function(e) {
             e.preventDefault();
@@ -24,7 +27,12 @@ class Browser {
         })
     }
 
-    onDisplay(){
+    start() {
+        const tag = this.tag;
+        chrome.runtime.sendMessage({query: 'start', tagName: tag});
+    }
+
+    onDisplay() {
         this.isOnTagPageHandler();
     }
 

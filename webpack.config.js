@@ -10,13 +10,15 @@ const template = path.resolve(__dirname, 'src', 'template.html')
 
 const index = path.resolve(src, 'index.js');
 const domworker = path.resolve(src, 'domworker.js');
+const downloader = path.resolve(src, 'downloader.js');
 
 module.exports = {
-    mode: 'production',
+    mode: 'development',
     devtool: 'source-map',
     entry: {
         index,
         domworker,
+        downloader,
     },
     output: {
         path: dist,
@@ -56,10 +58,6 @@ module.exports = {
                 {
                     from: path.resolve(__dirname, 'fonts'),
                     to: path.resolve(dist, 'fonts'),
-                },
-                {
-                    from: path.resolve(src, 'downloader.js'),
-                    to: dist,
                 },
             ]
         }),
