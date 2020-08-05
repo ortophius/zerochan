@@ -1,82 +1,67 @@
 const router = require('./Router');
-console.log(router);
+const storage = require('./Storage');
+const loader = require('./Loader');
 
 class Browser {
-    constructor(){
+    constructor() {
         const _ = this;
         this.thumb = document.getElementById('thumb')
-        this.tagElem = document.getElementById('tag-name')
+        this.tagName = document.getElementById('tag-name')
         this.countElem = document.getElementById('images-count')
         this.backButton = document.getElementById('to-search');
         this.startButton = document.getElementById('start');
+        this.stopButton = document.getElementById('stop');
+        
+        this.progress = document.getElementById('progress');
+        this.currentCount = document.getElementById('current-count');
+        this.totalCount = document.getElementById('total-count');
+        this.progressBar = document.getElementById('progress-bar');
+        this.bar = document.getElementById('bar');
 
-        this.startButton.onclick = this.start.bind(this);
+        this.setupListeners();
+    }
 
+    setupListeners() {
         this.backButton.onclick = function(e) {
+            console.log('fuck');
             e.preventDefault();
             router.switch('search');
         }
-
-        chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
-            const tab = _.tab = tabs[0];
-            const zerochan = tab.url.search(/https:\/\/www\.zerochan\.net\//);
-            
-            if(zerochan !== 0) return;
-
-            chrome.tabs.sendMessage(tab.id, {query: 'isOnTagPage'}, _.isOnTagPageHandler.bind(_));
-        })
     }
 
-    start() {
-        const tag = this.tag;
-        chrome.runtime.sendMessage({query: 'start', tagName: tag});
-    }
-
-    onDisplay() {
-        this.isOnTagPageHandler();
-    }
-
-    isOnTagPageHandler(response) {
-        if (response === false) return;
-        this.setTag(response);
-        this.showTagInfo();
-    }
-
-    getPage(url) {
+    displayTagInfo(info) {
         const _ = this;
-        return new Promise(function(resolve, reject){
-            $.ajax({
-                url,
-                type: 'GET',
-                context: _,
-                success: resolve,
-            })
-        });
+
+        router.switch('loader');
+        
+        if (!info) {
+            router.switch('search');
+            return;
+        }
+
+        if (typeof info === 'string') {
+            loader
+                .loadXML(encodeURI('https://www.zerochan.net/' + info))
+                .then(this.displayTagInfo.bind(_));
+            return;
+        }
+
+        if (info.tagPage) {
+            this.tagName.innerHTML = info.tag;
+            this.countElem.innerHTML = info.getImagesCount();
+            router.switch('browser');
+            this.thumb.setAttribute('src', info.images[0].replace('/full/', '/240/'))
+            router.switch('browser');
+        }
     }
 
-    showTagInfo(){
-        this.getPage(this.tagUrl)
-            .then(this.fetchTagInfo.bind(this))
-            .then(function(){ router.switch('browse') });
-    }
+    showProgress(tag) {
+        if (!tag) return;
+        this.progress.classList.remove('invisible');
+        this.totalCount.innerHTML = tag.count;
+        this.currentCount.innerHTML = tag.currentCount;
 
-    setTag(tag){
-        this.tagUrl = 'https://www.zerochan.net/'+encodeURI(tag);
-        this.tag = tag;
-    }
-
-    fetchTagInfo(htmlString){
-        const _ = this;
-        return new Promise(function(resolve){
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(htmlString, 'text/html');
-            console.log(doc);
-            _.count = doc.querySelector('#parents-listing').childNodes[0].data.split(' ')[0];
-            _.thumb.setAttribute('src', doc.querySelector('#thumbs2 li img').getAttribute('src'));
-            _.tagElem.innerHTML = _.tag;
-            _.countElem.innerHTML = _.count;
-            resolve();
-        });
+        this.bar.style.width = Math.floor(tag.currentCount * 100 / tag.count);
     }
 }
 

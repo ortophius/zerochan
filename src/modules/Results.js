@@ -1,4 +1,5 @@
 const browser = require('./Browser');
+const router = require('./Router');
 
 class Results {
     constructor(){
@@ -17,8 +18,7 @@ class Results {
             chrome.tabs.create({url: link});
         }
         else {
-            browser.setTag(a.dataset.name);
-            browser.showTagInfo();
+            browser.displayTagInfo(a.dataset.name);
         }
     }
 

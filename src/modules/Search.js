@@ -1,7 +1,12 @@
 const results = require('./Results');
 
-const Search = {
-    listen: function(input){
+class Search {
+
+    constructor() {
+        this.listen(document.getElementById('search'));
+    }
+
+    listen(input) {
         if (typeof input !== 'object') return;
         
         this.input = input;
@@ -9,15 +14,15 @@ const Search = {
         input.onpaste = this.watch.bind(this);
 
         this.resultDiv = document.getElementById('results');
-    },
+    }
 
-    watch: function(){
+    watch() {
         if(this.tId !== undefined) clearTimeout(this.tId);
         if (this.input.value === '') return;
         this.tId = setTimeout(this.suggest.bind(this), 500)
-    },
+    }
 
-    suggest: function(){
+    suggest() {
         if (this.request !== undefined) this.request.abort();
         const _ = this;
         const query = this.input.value.replace('/s', '+');
@@ -28,31 +33,31 @@ const Search = {
             context: _,
             success: _.displayTags,
         });
-    },
+    }
 
-    displayTags: function(data){
+    displayTags(data) {
         if (data === '') return;
 
         const _ = this;
         const tags = [];
         const resultDiv = this.resultDiv;
 
-        data.split(/[\n\r]/g).forEach(function(line){
+        data.split(/[\n\r]/g).forEach(function(line) {
             if (line === '') return;
             const splittedLine = line.split('|');
             tags.push({name: splittedLine[0], type: splittedLine[1]});
         });
 
         results.flush();
-        tags.forEach(function(tag){
+        tags.forEach(function(tag) {
             results.addTag(tag) 
         });
-    },
+    }
 
-    inspectMeta: function(tag) {
+    inspectMeta(tag) {
         const url = tag.name.replace('/s', '+');
         chrome.tabs.create({url});
     }
 };
-
-module.exports = Search;
+const search = new Search();
+module.exports = search;

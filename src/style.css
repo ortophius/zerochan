@@ -89,6 +89,14 @@ body {
 
 #preferences {
     padding: 1em 2em 0 1em;
+    color: #6f6f6f;
+    font-size: 12px;
+}
+
+#preferences h2 {
+    font-size: 20px;
+    color: #363636;
+    margin-bottom: 0.2em;
 }
 
 #to-search {
@@ -113,18 +121,14 @@ body {
 }
 
 #info {
-    font-size: 12px;
-    color: #6f6f6f;
     margin-bottom: 2em;
 }
 
-#tag-name {
-    font-size: 20px;
-    color: #363636;
-    margin-bottom: 0.2em;
+#info span {
+    font-size: 12px;
 }
 
-#start {
+#start, #stop {
     padding: 0.5em;
     font-weight: 600;
     color: #ffffff;
@@ -136,4 +140,19 @@ body {
 
 #start:active {
     outline: none;
+}
+
+#progress-bar {
+    min-height: 24px;
+    width: 100%;
+    background: #ffffff;
+    margin: 1em 0;
+    border: 1px solid #a7a7a7;
+}
+
+#progress #bar {
+    min-height: 25px;
+    background-color: #86bd86;
+    transition: width 0.3s;
+    width: 0;
 }

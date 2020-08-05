@@ -9,7 +9,6 @@ const manifest = path.resolve(__dirname, 'manifest.json');
 const template = path.resolve(__dirname, 'src', 'template.html')
 
 const index = path.resolve(src, 'index.js');
-const domworker = path.resolve(src, 'domworker.js');
 const downloader = path.resolve(src, 'downloader.js');
 
 module.exports = {
@@ -17,7 +16,6 @@ module.exports = {
     devtool: 'source-map',
     entry: {
         index,
-        domworker,
         downloader,
     },
     output: {
