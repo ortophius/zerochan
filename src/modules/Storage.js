@@ -37,6 +37,26 @@ class Storage {
         });
     }
 
+    setProps(obj) {
+        const _ = this;
+        const storage = this.storage;
+
+        return new Promise(function(resolve) {
+            storage.set(obj, resolve);
+        });
+    }
+
+    getProps(arr) {
+        if (!(arr instanceof Array) && typeof arr !== 'string') return Promise.resolve();
+
+        const _ = this;
+        const storage = this.storage;
+
+        return new Promise(function(resolve) {
+            storage.get(arr, resolve);
+        });
+    }
+
     getNestedProp(objName, key) {
         const _ = this;
         const storage = this.storage;

@@ -22,15 +22,22 @@ class Browser {
     }
 
     setupListeners() {
+        const _ = this;
+
         this.backButton.onclick = function(e) {
-            console.log('fuck');
             e.preventDefault();
             router.switch('search');
+        }
+
+        this.startButton.onclick = function(e) {
+            e.preventDefault();
+            chrome.runtime.sendMessage({query: 'start', tagInfo: _.tagInfo});
         }
     }
 
     displayTagInfo(info) {
         const _ = this;
+        _.tagInfo = info;
 
         router.switch('loader');
         
@@ -41,17 +48,17 @@ class Browser {
 
         if (typeof info === 'string') {
             loader
-                .loadXML(encodeURI('https://www.zerochan.net/' + info))
+                .loadXML(loader.urlFromTag(info))
                 .then(this.displayTagInfo.bind(_));
             return;
         }
 
         if (info.tagPage) {
+            this.tag = info.tag;
             this.tagName.innerHTML = info.tag;
             this.countElem.innerHTML = info.getImagesCount();
             router.switch('browser');
             this.thumb.setAttribute('src', info.images[0].replace('/full/', '/240/'))
-            router.switch('browser');
         }
     }
 

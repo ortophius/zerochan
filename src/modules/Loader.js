@@ -2,6 +2,10 @@ const parser = new DOMParser();
 
 class Loader {
 
+    urlFromTag(tagName) {
+        return 'https://www.zerochan.net/' + encodeURIComponent(tagName);
+    }
+
     loadXML(url) {
         const _ = this;
         const d = (url.search(/\?/g) > -1) ? '&' : '?';
@@ -11,16 +15,21 @@ class Loader {
             $.ajax({
                 type: 'GET',
                 url: url,
-                dataType: 'xml',
+                dataType: 'text',
                 error: function() { resolve(null) },
                 success: function(data) {
+                    data = data
+                        .replace('& ', '&amp; ');
                     resolve(_.toObj(data));
                 }
             });
         });
     }
 
-    toObj(xmlDocument) {
+    toObj(document) {
+        const xmlDocument = parser.parseFromString(document, 'text/xml');
+        console.log(xmlDocument);
+
         const r = {};
         console.log(xmlDocument);
         let channel = xmlDocument.querySelector('channel');
@@ -33,15 +42,24 @@ class Loader {
         // (Please dont do it, seriously.)
         if (title.search(/^Page \d/) === 0) return null;
 
-        r.tag = title.replace(/( (- )?Image #\d+)? - Zerochan/, '').split(' - ')[0];
-
         if (title.search(/Image #\d/) === -1) {
-            title = title.split(' - ');
+
             r.tagPage = true;
-            r.description = xmlDocument.querySelector('description').innerHTML;
+            
+            const description = xmlDocument.querySelector('description');
+            r.description = (description) ? description.innerHTML : null;
+            
+            r.tag = xmlDocument
+                .querySelector('channel link')
+                .innerHTML
+                .split('/')[3]
+            r.tag = decodeURI(r.tag)
+                .replace(/\?.*/, '')
+                .replace(/\+/g, ' ');
+                
             
             const nextLink = xmlDocument.querySelector('[rel=next]');
-            if (nextLink) r.next = 'https://www.zerochan.net' + nextLink.getAttribute('url');
+            if (nextLink) r.next = 'https://www.zerochan.net' + nextLink.getAttribute('href');
             else r.next = null;
             
             r.images = [];
@@ -61,8 +79,11 @@ class Loader {
         }
 
         else {
+            r.tag = xmlDocument
+                .querySelector('item title')
+                .innerHTML
+                .replace(/\s\(#\d+\)/, '')
             r.tagPage = false;
-            title = title.split(' - ');
         }
 
         r.tagUrl = 'https://www.zerochan.net/' + encodeURI(r.tag); 

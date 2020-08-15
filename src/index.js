@@ -27,7 +27,7 @@ storage
                 
                 else {
                     url = url
-                        .replace(/\?p=\d+/, '')
+                        .replace(/\?.*/, '')
                         .replace('full/', '')
                         .replace('#full', '');
 
@@ -55,7 +55,6 @@ function dispatch(res) {
             .then(dispatch);
         return;
     }
-
     browser.displayTagInfo(res);
     return Promise.resolve();
 }
