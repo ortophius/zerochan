@@ -85,6 +85,7 @@ body {
     border: 1px solid green;
     min-height: 50;
     min-width: 50;
+    max-width: 200px;
 }
 
 #preferences {

@@ -3,14 +3,13 @@ const parser = new DOMParser();
 class Loader {
 
     urlFromTag(tagName) {
-        return 'https://www.zerochan.net/' + encodeURIComponent(tagName);
+        return 'https://www.zerochan.net/' + tagName.replace(/\s/g, '+');
     }
 
     loadXML(url) {
         const _ = this;
         const d = (url.search(/\?/g) > -1) ? '&' : '?';
         url = url + d + 'xml';
-        console.log(url);
         return new Promise(function(resolve){
             $.ajax({
                 type: 'GET',
@@ -28,13 +27,9 @@ class Loader {
 
     toObj(document) {
         const xmlDocument = parser.parseFromString(document, 'text/xml');
-        console.log(xmlDocument);
 
         const r = {};
-        console.log(xmlDocument);
         let channel = xmlDocument.querySelector('channel');
-        console.log(xmlDocument);
-        console.log(channel);
         if (!xmlDocument || !channel) return null;
 
         let title = xmlDocument.querySelector('channel title').innerHTML;
@@ -53,7 +48,7 @@ class Loader {
                 .querySelector('channel link')
                 .innerHTML
                 .split('/')[3]
-            r.tag = decodeURI(r.tag)
+            r.tag = decodeURIComponent(r.tag)
                 .replace(/\?.*/, '')
                 .replace(/\+/g, ' ');
                 
@@ -68,12 +63,18 @@ class Loader {
             if (images && images.length > 0) {
 
                 for (let i = 0; i < images.length; i++) {
-                    r.images.push( 
-                        images[i]
+                    let imageName = images[i]
                         .querySelector('[width]')
                         .getAttribute('url')
-                        .replace('/600/', '/full/')
-                        .replace('/240/', '/full/'));
+                        .split('/');
+                    imageName = imageName[imageName.length - 1];
+                    const tagPart = 
+                        images[i]
+                        .querySelector('title')
+                        .innerHTML
+                        .replace(/\s/g, '.');
+
+                    r.images.push('https://static.zerochan.net/'+ tagPart + '.full.' + imageName);
                 }
             }
         }
@@ -86,7 +87,7 @@ class Loader {
             r.tagPage = false;
         }
 
-        r.tagUrl = 'https://www.zerochan.net/' + encodeURI(r.tag); 
+        r.tagUrl = 'https://www.zerochan.net/' + r.tag.replace(/\s/g, '+'); 
 
         r.getImagesCount = function(noDelim) {
             const regex = /Zerochan has (\d+(\,\d+)?)\s/;

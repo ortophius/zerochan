@@ -13,9 +13,12 @@ storage
         if (d) {
             storage
                 .getProp('currentTag')
-                .then(tagToUrl)
-                .then(loadXML)
-                .then(dispatch);
+                .then(function(tagName) {
+                    loader
+                        .loadXML(loader.urlFromTag(tagName))
+                        .then(dispatch);
+
+                });
         }
  
         else {
