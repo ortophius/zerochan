@@ -5,6 +5,7 @@
   "main": "webpack.config.js",
   "scripts": {
     "watch": "webpack --watch --progress",
+    "build": "webpack --progress",
     "test": "mocha src/tests"
   },
   "author": "",
