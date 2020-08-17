@@ -24,15 +24,6 @@ chrome.runtime.onMessage.addListener(
                             downloading: true
                         });
                     });
-                    // loader.loadXML(q.tagInfo.tagUrl).then(function(newTagObj) {
-                    //     newTagObj.count = newTagObj.getImagesCount();
-                    //     storage.setProps({
-                    //         [q.tagInfo.tag]: newTagObj,
-                    //         currentTag: q.tagInfo.tag,
-                    //         firstImage: true,
-                    //         downloading: true
-                    //     });
-                    // });
                 }
                 else {
                     storage.setProps({
@@ -52,13 +43,16 @@ function download() {
     .then(function(r) {
         storage.getProp(r.currentTag).then(function(tagObj) {
             if (!tagObj) return;
-            console.log(tagObj);
-            const opts = {};
-            opts.url = tagObj.images[0];
-            opts.conflictAction = chrome.downloads.FilenameConflictAction.UNIQUFY;
-            opts.saveAs = (r.firstImage) ? true : false;
-            chrome.downloads.download(opts, function(id) {
-                addDownloadListener(id, r.currentTag);
+            loader
+            .getImageLink(tagObj.links[0])
+            .then(function(imageLink) {
+                const opts = {};
+                opts.url = imageLink;
+                opts.conflictAction = chrome.downloads.FilenameConflictAction.UNIQUFY;
+                // opts.saveAs = (r.firstImage) ? true : false;
+                chrome.downloads.download(opts, function(id) {
+                    addDownloadListener(id, r.currentTag);
+                });
             });
         });
     });
@@ -82,20 +76,21 @@ function addDownloadListener(id, tagName) {
                         storage
                         .getProp(tagName)
                         .then(function(tagObj) {
-                            tagObj.images.splice(0, 1);
-                            if (tagObj.images.length === 0 && !tagObj.next) {
+                            tagObj.links.splice(0, 1);
+                            if (tagObj.links.length === 0 && !tagObj.next) {
                                 storage.setProp('downloading', false);
+                                storage.removeProp(tagObj.tag);
                                 return
                             }
                             
-                            if (tagObj.images.lenth === 0 && tagObj.next) {
+                            if (tagObj.links.lenth === 0 && tagObj.next) {
                                 fetchTagPage(tagObj.next, tagName)
                                 .then(download);
                                 return;
                             }
                             tagObj.downloaded++;
                             storage
-                            .setProp(tagName, tagObj)
+                            .setProps({[tagName]: tagObj, firstImage: false})
                             .then(download);
                         });
                     }
@@ -114,17 +109,21 @@ function fetchTagPage(url, tagName) {
         loader
         .loadXML(url)
         .then(function(newTagObj) {
-            if (!newTagObj) resolve(null);
+            if (!newTagObj) {
+                resolve();
+                return;
+            }
 
             storage
             .getNestedProp(tagName, 'downloaded')
             .then(function(downloaded) {
                 newTagObj.downloaded = (downloaded) ? downloaded : 0;
-                newTagObj.count = newTagObj.getImagesCount();
+                newTagObj.count = newTagObj.count;
                 storage.setProps({
                     [tagName]: newTagObj,
                 })
-            });
+            })
+            .then(resolve);
         })
     });
 }

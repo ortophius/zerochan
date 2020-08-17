@@ -18,12 +18,6 @@
         "default_title": "Zerochan Grabber",
         "default_popup": "index.html"
     },
-    "content_scripts": [
-        {
-          "matches": ["https://www.zerochan.net/*"],
-          "js": ["domworker.js"]
-        }
-      ],
     "background": {
       "scripts": ["downloader.js"],
       "persistent": true

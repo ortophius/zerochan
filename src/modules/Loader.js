@@ -26,6 +26,7 @@ class Loader {
     }
 
     toObj(document) {
+        const _ = this;
         const xmlDocument = parser.parseFromString(document, 'text/xml');
 
         const r = {};
@@ -57,24 +58,14 @@ class Loader {
             if (nextLink) r.next = 'https://www.zerochan.net' + nextLink.getAttribute('href');
             else r.next = null;
             
-            r.images = [];
-            const images = xmlDocument.querySelectorAll('item');
+            r.links = [];
+            const links = xmlDocument.querySelectorAll('item');
 
-            if (images && images.length > 0) {
-
-                for (let i = 0; i < images.length; i++) {
-                    let imageName = images[i]
-                        .querySelector('[width]')
-                        .getAttribute('url')
-                        .split('/');
-                    imageName = imageName[imageName.length - 1];
-                    const tagPart = 
-                        images[i]
-                        .querySelector('title')
-                        .innerHTML
-                        .replace(/\s/g, '.');
-
-                    r.images.push('https://static.zerochan.net/'+ tagPart + '.full.' + imageName);
+            if (links && links.length > 0) {
+                for (let i = 0; i < links.length; i++) {
+                    let link = links[i].querySelector('link').innerHTML;
+                    link = link.replace('http://', 'https://');
+                    r.links.push(link);
                 }
             }
         }
@@ -89,14 +80,44 @@ class Loader {
 
         r.tagUrl = 'https://www.zerochan.net/' + r.tag.replace(/\s/g, '+'); 
 
-        r.getImagesCount = function(noDelim) {
-            const regex = /Zerochan has (\d+(\,\d+)?)\s/;
-            return (noDelim) ?
-                regex.exec(this.description)[1].replace(',', '')
-                : regex.exec(this.description)[1];
-        }
+        const regex = /Zerochan has (\d+(\,\d+)?)\s/;
+        r.count = regex.exec(r.description)[1].replace(',', '')
 
         return r;
+    }
+
+    getImageLink(link) {
+        const _ = this;
+        return new Promise (function(resolve) {
+            _
+            .loadHTML(link)
+            .then(function(html) {
+                if (!html) {
+                    resolve(null);
+                    return;
+                }
+                const preview = html.querySelector('a.preview');
+                const large = html.querySelector('#large img');
+                const actualLink = (preview) ? preview.getAttribute('href') : large.getAttribute('src');
+                resolve(actualLink);
+            })
+        })
+    }
+
+    loadHTML(url) {
+        return new Promise(function(resolve) {
+            $.ajax({
+                url: url,
+                type: 'GET',
+                dataType: 'html',
+                error: function() { resolve(null) },
+                success: function(html) {
+                    const htmlDocument = parser.parseFromString(html, 'text/html');
+                    if (!htmlDocument.querySelector('html')) resolve(null);
+                    else resolve(htmlDocument);
+                }
+            });
+        });
     }
 
 }

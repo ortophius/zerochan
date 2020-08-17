@@ -93,6 +93,13 @@ class Storage {
             });
         });
     }
+
+    removeProp(propName) {
+        if(!propName || typeof propName !== 'string') return Promise.resolve(null);
+        return new Promise(function(resolve) {
+            chrome.storage.local.remove(propName, resolve);
+        });
+    }
 }
 
 const storage = new Storage();

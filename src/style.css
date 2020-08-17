@@ -22,7 +22,7 @@ body {
 }
 
 .title {
-    background-color: #8BC34A;
+    background-color: #63a01c;
     color: #FFFFFF;
     text-align: center;
     padding: 0.5em;
@@ -92,6 +92,10 @@ body {
     padding: 1em 2em 0 1em;
     color: #6f6f6f;
     font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: space-between;
 }
 
 #preferences h2 {
@@ -129,14 +133,20 @@ body {
     font-size: 12px;
 }
 
-#start, #stop {
+button {
     padding: 0.5em;
     font-weight: 600;
     color: #ffffff;
-    background-color: #8bc34a;
+    background-color: #63a01c;
     border: none;
     border-radius: 5px;
     cursor: pointer;
+}
+
+#clear {
+    padding: 0.2em;
+    font-weight: initial;
+    background-color: #831b1b;
 }
 
 #start:active {
@@ -153,7 +163,7 @@ body {
 
 #progress #bar {
     min-height: 25px;
-    background-color: #86bd86;
+    background-color: #63a01c;
     transition: width 0.3s;
     width: 0;
 }

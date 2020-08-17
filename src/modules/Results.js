@@ -45,8 +45,6 @@ class Results {
         }
         else link.dataset.meta = false;
 
-        console.log(link);
-
         this.domRoot.appendChild(link);
         
         //Time to kostily
