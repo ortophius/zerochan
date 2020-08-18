@@ -42,10 +42,6 @@ storage
         }
     });
 
-function tagToUrl(tag) {
-    return Promise.resolve(encodeURI(tag));
-}
-
 function dispatch(res) {
     if (!res) {
         router.switch('search');

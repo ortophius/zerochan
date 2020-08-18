@@ -9,6 +9,7 @@
         "cookies",
         "https://*.zerochan.net/*",
         "downloads",
+        "downloads.shelf",
         "storage"
     ],
     "web_accessible_resources": [

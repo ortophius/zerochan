@@ -12,7 +12,7 @@ const index = path.resolve(src, 'index.js');
 const downloader = path.resolve(src, 'downloader.js');
 
 module.exports = {
-    mode: 'production',
+    mode: 'development',
     devtool: 'source-map',
     entry: {
         index,

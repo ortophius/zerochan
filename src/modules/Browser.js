@@ -6,6 +6,7 @@ class Browser {
     constructor() {
         const _ = this;
         this.thumb = document.getElementById('thumb')
+        this.thumbLink = document.getElementById('thumb-link');
         this.tagName = document.getElementById('tag-name')
         this.countElem = document.getElementById('images-count')
         this.backButton = document.getElementById('to-search');
@@ -50,6 +51,14 @@ class Browser {
             storage.removeProp(_.tagInfo.tag);
         }
 
+        this.thumbLink.onclick = function(e) {
+            e.preventDefault();
+            const url = _.thumbLink.getAttribute('href');
+            chrome.tabs.create({
+                url,
+            });
+        }
+
         chrome.storage.local.onChanged.addListener(function(delta) {
             const tag = _.tagInfo.tag;
             if (delta[tag] && !delta[tag].newValue) _.clear();
@@ -67,7 +76,7 @@ class Browser {
         this.bar.style.width = '0%';
     }
 
-    displayTagInfo(info) {
+    async displayTagInfo(info) {
         const _ = this;
         _.tagInfo = info;
         _.clear();
@@ -91,17 +100,16 @@ class Browser {
             this.countElem.innerHTML = info.count;
             router.switch('browser');
             const _ = this;
-            loader.getImageLink(info.links[0]).then(function(link) {
-                _.thumb.setAttribute('src', link);
-            });
+            _.thumb.setAttribute('src', await loader.getThumb(info.tag));
+            _.thumbLink.setAttribute('href', loader.urlFromTag(info.tag));
         }
 
         storage
         .getNestedProp(info.tag, 'downloaded')
         .then(function(c) {
-            console.log(c);
             if (c > 0) _.showProgress(info.tag);
         });
+        return;
     }
 
     showProgress(tag) {
@@ -123,9 +131,14 @@ class Browser {
             .then(function(d) {
                 if (d) {
                     _.status.innerHTML = 'Идёт загрузка';
+
+                    _.startButton.classList.add('invisible');
                     _.stopButton.classList.remove('invisible');
                 }
-                else _.status.innerHTML = 'Остановлено';
+                else {
+                    _.clearButton.removeAttribute('invisible');
+                    _.status.innerHTML = 'Остановлено';
+                }
             });
         });
     }

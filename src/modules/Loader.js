@@ -3,7 +3,10 @@ const parser = new DOMParser();
 class Loader {
 
     urlFromTag(tagName) {
-        return 'https://www.zerochan.net/' + tagName.replace(/\s/g, '+');
+        const uri = 
+            tagName.replace(/\s/g, '+')
+                .replace(/\?/g, encodeURIComponent('?'));
+        return 'https://www.zerochan.net/' + uri;
     }
 
     loadXML(url) {
@@ -48,14 +51,30 @@ class Loader {
             r.tag = xmlDocument
                 .querySelector('channel link')
                 .innerHTML
-                .split('/')[3]
+                .split('/')[3];
             r.tag = decodeURIComponent(r.tag)
-                .replace(/\?.*/, '')
+                .replace(/\?p=\d+/g, '')
                 .replace(/\+/g, ' ');
                 
             
             const nextLink = xmlDocument.querySelector('[rel=next]');
-            if (nextLink) r.next = 'https://www.zerochan.net' + nextLink.getAttribute('href');
+            const selfLink = xmlDocument.querySelector('channel link');
+
+            if (nextLink && selfLink) {
+                const basePart = 
+                    selfLink
+                    .innerHTML
+                    .replace('http://', 'https://')
+                    .replace(/p=\d+/g, '')
+                    .replace('&', '')
+                    .replace('?', '');
+                const restPart = 
+                    nextLink
+                    .getAttribute('href')
+                    .replace('xml=&', '');
+                r.next = basePart + restPart;
+            }
+            // r.next = 'https://www.zerochan.net' + nextLink.getAttribute('href');
             else r.next = null;
             
             r.links = [];
@@ -68,6 +87,10 @@ class Loader {
                     r.links.push(link);
                 }
             }
+            const regex = /Zerochan has (\d+(\,\d+)?)\s/;
+            let count = regex.exec(r.description);
+            r.count = (count) ? count[1].replace(',', '') : 0;
+            r.document = xmlDocument;
         }
 
         else {
@@ -77,13 +100,18 @@ class Loader {
                 .replace(/\s\(#\d+\)/, '')
             r.tagPage = false;
         }
-
-        r.tagUrl = 'https://www.zerochan.net/' + r.tag.replace(/\s/g, '+'); 
-
-        const regex = /Zerochan has (\d+(\,\d+)?)\s/;
-        r.count = regex.exec(r.description)[1].replace(',', '')
-
+        r.tagUrl = _.urlFromTag(r.tag);
         return r;
+    }
+
+    async getThumb(tagName) {
+        const url = this.urlFromTag(tagName);
+        const res = await this.loadXML(url);
+        const xmlDocument = res.document;
+        const item = xmlDocument.querySelector('item');
+        if (!item) return null;
+
+        return item.querySelector('[url]').getAttribute('url');
     }
 
     getImageLink(link) {

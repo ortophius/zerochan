@@ -6,7 +6,13 @@ const zerochan = 'https://www.zerochan.net';
 
 chrome.storage.onChanged.addListener(function(changes, area) {
     if (area !== 'local') return;
-    if (changes.downloading && changes.downloading.newValue) download();
+    if (changes.downloading) {
+        if (changes.downloading) {
+            chrome.downloads.setShelfEnabled(false);
+            download();
+        }
+        else chrome.downloads.setShelfEnabled(false);
+    };
 });
 
 chrome.runtime.onMessage.addListener(
@@ -37,93 +43,83 @@ chrome.runtime.onMessage.addListener(
     }
 );
 
-function download() {
-    storage
-    .getProps(['currentTag', 'firstImage'])
-    .then(function(r) {
-        storage.getProp(r.currentTag).then(function(tagObj) {
-            if (!tagObj) return;
-            loader
-            .getImageLink(tagObj.links[0])
-            .then(function(imageLink) {
-                const opts = {};
-                opts.url = imageLink;
-                opts.conflictAction = chrome.downloads.FilenameConflictAction.UNIQUFY;
-                // opts.saveAs = (r.firstImage) ? true : false;
-                chrome.downloads.download(opts, function(id) {
-                    addDownloadListener(id, r.currentTag);
-                });
-            });
-        });
+async function download() {
+    
+    const tagName = await storage.getProp('currentTag');
+    const tagObj = await storage.getProp(tagName);
+
+    if (!tagObj) return;
+
+    const imageLink = await loader.getImageLink(tagObj.links[0]);
+
+    const opts = {};
+    opts.url = imageLink;
+    opts.conflictAction = chrome.downloads.FilenameConflictAction.UNIQUFY;
+
+    chrome.downloads.download(opts, function(id) {
+        addDownloadListener(id, tagName);
     });
+
+    return;
 }
 
 function addDownloadListener(id, tagName) {
-    chrome.downloads.onChanged.addListener(function (delta) {
-        if(delta.id !== id) return;
+    
+    chrome.downloads.onChanged.addListener(async function (delta) {
 
-        if (delta.url) {
-            console.log(delta.url);
-        }
+        const d = await storage.getProp('downloading');
         
-        if (delta.state) {
-            if (delta.state.current == 'complete') {
-                storage
-                .getProp('downloading')
-                .then(function(d) {
-                    if (!d) storage.setProp('downloading', false);
-                    else {
-                        storage
-                        .getProp(tagName)
-                        .then(function(tagObj) {
-                            tagObj.links.splice(0, 1);
-                            if (tagObj.links.length === 0 && !tagObj.next) {
-                                storage.setProp('downloading', false);
-                                storage.removeProp(tagObj.tag);
-                                return
-                            }
-                            
-                            if (tagObj.links.lenth === 0 && tagObj.next) {
-                                fetchTagPage(tagObj.next, tagName)
-                                .then(download);
-                                return;
-                            }
-                            tagObj.downloaded++;
-                            storage
-                            .setProps({[tagName]: tagObj, firstImage: false})
-                            .then(download);
-                        });
-                    }
-                });
-            };
-        
-            if (delta.state.current == 'interrupted') {
-                storage.setProp('downloading', false);
-            };
+        const tagObj = await storage.getProp(tagName);
+        if (!tagObj) {
+            await storage.setProp('downloading', false);
+            return;
         }
-    });
+
+        if (delta.id !== id) return;
+        if (!delta.state) return;
+        if (delta.state.current === 'in_progress') return;
+
+        if ((delta.state.current === 'complete') || (delta.error && delta.error.current === 'SERVER_BAD_CONTENT')) {
+
+            await rotateLinks(tagObj);
+            if (d) download();
+            chrome.downloads.erase({id: id});
+            return;
+        }
+
+        if (delta.state.current === 'interrupted') {
+            await storage.setProp('downloading', false);
+            return;
+        }
+    })
 }
 
-function fetchTagPage(url, tagName) {
-    return new Promise(function(resolve) {
-        loader
-        .loadXML(url)
-        .then(function(newTagObj) {
-            if (!newTagObj) {
-                resolve();
-                return;
-            }
+async function rotateLinks(tagObj) {
 
-            storage
-            .getNestedProp(tagName, 'downloaded')
-            .then(function(downloaded) {
-                newTagObj.downloaded = (downloaded) ? downloaded : 0;
-                newTagObj.count = newTagObj.count;
-                storage.setProps({
-                    [tagName]: newTagObj,
-                })
-            })
-            .then(resolve);
-        })
-    });
+    tagObj.downloaded++;
+    tagObj.links.splice(0, 1);
+
+    if (tagObj.links.length === 0 && !tagObj.next) {
+        await storage.setProp('downloading', false);
+        await storage.removeProp(tagObj.tag);
+    }
+
+    if (tagObj.links.length === 0 && tagObj.next) {
+        await fetchTagPage(tagObj.next, tagObj.tag);
+    }
+
+    if (tagObj.links.length > 0) await storage.setProp(tagObj.tag, tagObj);
+    return;
+}
+
+async function fetchTagPage(url, tagName) {
+
+    const oldTagObj = await storage.getProp(tagName);
+    const newTagObj = await loader.loadXML(url);
+
+    newTagObj.downloaded = (oldTagObj && oldTagObj.downloaded) ? oldTagObj.downloaded : 0;
+
+    await storage.setProp(tagName, newTagObj);
+
+    return;
 }
