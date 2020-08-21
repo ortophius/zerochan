@@ -36,13 +36,12 @@ class Browser {
             chrome.runtime.sendMessage({query: 'start', tagInfo: _.tagInfo});
             _.startButton.classList.add('invisible');
             _.backButton.classList.add('invisible');
+            _.clearButton.classList.add('invisible');
         }
 
         this.stopButton.onclick = function(e) {
             e.preventDefault();
-            _.startButton.classList.remove('invisible');
-            _.clearButton.classList.remove('invisible');
-            _.stopButton.classList.add('invisible');
+            _.stop.call(_);
             storage.setProp('downloading', false);
         }
 
@@ -64,7 +63,23 @@ class Browser {
             if (delta[tag] && !delta[tag].newValue) _.clear();
             if (delta[tag] && delta[tag].newValue) _.updateProgress(delta[tag].newValue);
             if (delta.downloading && delta.downloading.newValue) _.showProgress(tag);
+            if (delta.downloading && !delta.downloading.newValue) {
+                _.stop.call(_);
+            };
         });
+    }
+
+    async stop() {
+        this.backButton.classList.remove('invisible');
+        this.startButton.classList.remove('invisible');
+        this.stopButton.classList.add('invisible');
+
+        const obj = await storage.getProp(this.tagInfo.tag);
+        if (obj.downloaded > 0) this.clearButton.classList.remove('invisible');
+
+        this.status.innerHTML = 'Остановлено';
+
+        return;
     }
 
     clear() {
@@ -136,7 +151,7 @@ class Browser {
                     _.stopButton.classList.remove('invisible');
                 }
                 else {
-                    _.clearButton.removeAttribute('invisible');
+                    _.clearButton.classList.remove('invisible');
                     _.status.innerHTML = 'Остановлено';
                 }
             });

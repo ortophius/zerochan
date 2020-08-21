@@ -7,39 +7,41 @@ const zerochan = 'https://www.zerochan.net';
 chrome.storage.onChanged.addListener(function(changes, area) {
     if (area !== 'local') return;
     if (changes.downloading) {
-        if (changes.downloading) {
+        if (changes.downloading.newValue) {
             chrome.downloads.setShelfEnabled(false);
             download();
         }
-        else chrome.downloads.setShelfEnabled(false);
+        else chrome.downloads.setShelfEnabled(true);
     };
 });
 
 chrome.runtime.onMessage.addListener(
-    function(q) {
+    async function(q) {
         if (q.query != 'start') return;
 
-        storage.setProp('currentTag', q.tag).then(function(){
-            storage.getProp(q.tagInfo.tag).then(function(tagObj) {
-                if (!tagObj) {
-                    fetchTagPage(q.tagInfo.tagUrl, q.tagInfo.tag)
-                    .then(function() {
-                        storage.setProps({
-                            currentTag: q.tagInfo.tag,
-                            firstImage: true,
-                            downloading: true
-                        });
-                    });
-                }
-                else {
-                    storage.setProps({
-                        currentTag: q.tagInfo.tag,
-                        firstImage: true,
-                        downloading: true
-                    });
-                };
-            })
-        });
+        const tagObj = await storage.getProp(q.tagInfo.tag);
+
+        await storage.setProp('currentTag', q.tag);
+
+        if (!tagObj) {
+            await fetchTagPage(q.tagInfo.tagUrl, q.tagInfo.tag)
+
+            await storage.setProps({
+                currentTag: q.tagInfo.tag,
+                firstImage: true,
+                downloading: true
+            });
+        }
+
+        else {
+            await storage.setProps({
+                currentTag: q.tagInfo.tag,
+                firstImage: true,
+                downloading: true
+            });
+        }
+
+        return;
     }
 );
 
@@ -89,6 +91,7 @@ function addDownloadListener(id, tagName) {
 
         if (delta.state.current === 'interrupted') {
             await storage.setProp('downloading', false);
+            console.log('fuck');
             return;
         }
     })
@@ -116,6 +119,8 @@ async function fetchTagPage(url, tagName) {
 
     const oldTagObj = await storage.getProp(tagName);
     const newTagObj = await loader.loadXML(url);
+
+    if (oldTagObj && oldTagObj.count && !newTagObj.count) newTagObj.count = oldTagObj.count;
 
     newTagObj.downloaded = (oldTagObj && oldTagObj.downloaded) ? oldTagObj.downloaded : 0;
 
